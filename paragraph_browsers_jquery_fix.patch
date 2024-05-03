@@ -1,0 +1,57 @@
+diff --git a/js/paragraphs_browser.modal.js b/js/paragraphs_browser.modal.js
+index 6df99ee..f0d0238 100644
+--- a/js/paragraphs_browser.modal.js
++++ b/js/paragraphs_browser.modal.js
+@@ -3,7 +3,7 @@
+  *
+  */
+ 
+-(function ($, Drupal, drupalSettings) {
++(function ($, Drupal, drupalSettings, once) {
+ 
+   'use strict';
+ 
+@@ -87,19 +87,21 @@
+ 
+   Drupal.behaviors.PBStyling = {
+     attach: function (context) {
+-      $('.paragraphs-browser-wrapper', context)
+-        .once('fieldsetclick')
+-        .each(function (i, el) {
+-          $(el).on('click', '.paragraphs-browser-paragraph-type', function (e) {
++      const elements = once('fieldsetclick', '.paragraphs-browser-wrapper', context);
++      elements.forEach(el => {
++        el.addEventListener('click', function (e) {
++          const element = e.target.closest('.paragraphs-browser-paragraph-type');
++          if (element) {
+             e.preventDefault();
+             e.stopPropagation();
+-
+-          $(e.currentTarget)
+-            .find('input')
+-            .trigger('mousedown');
++            const inputElement = element.querySelector('input');
++            if (inputElement) {
++              inputElement.dispatchEvent(new Event('mousedown'));
++            }
++          }
+         });
+       });
+     }
+   };
+ 
+-}(jQuery, Drupal, drupalSettings));
++}(jQuery, Drupal, drupalSettings, once));
+diff --git a/paragraphs_browser.libraries.yml b/paragraphs_browser.libraries.yml
+index 09a7076..5d5b451 100644
+--- a/paragraphs_browser.libraries.yml
++++ b/paragraphs_browser.libraries.yml
+@@ -6,4 +6,5 @@ modal:
+     component:
+       css/paragraphs_browser.css: {}
+   dependencies:
+-    - core/drupal.dialog.ajax
+\ No newline at end of file
++    - core/drupal.dialog.ajax
++    - core/once
+\ No newline at end of file
