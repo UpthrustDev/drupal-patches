@@ -1,0 +1,47 @@
+diff --git a/src/Plugin/migrate/process/EntityGenerate.php b/src/Plugin/migrate/process/EntityGenerate.php
+index 7311687d6dba25a8a795ad6d6c9eba731dc1aae2..9fbe0df8d3a3b890fe3b0952fc1b635d30f1986d 100644
+--- a/src/Plugin/migrate/process/EntityGenerate.php
++++ b/src/Plugin/migrate/process/EntityGenerate.php
+@@ -90,6 +90,10 @@ class EntityGenerate extends EntityLookup {
+     if (!($result = parent::transform($value, $migrateExecutable, $row, $destinationProperty))) {
+       $result = $this->generateEntity($value);
+     }
++    // Update the entity if the configuration key updat is set to TRUE.
++    elseif (isset($this->configuration['update']) && $this->configuration['update'] === TRUE) {
++      $result = $this->updateEntity($result, $value);
++    }
+
+     return $result;
+   }
+@@ -114,6 +118,31 @@ class EntityGenerate extends EntityLookup {
+     }
+   }
+
++
++  /**
++   * Update an entity for a given target.
++   *
++   * @param string $target_id
++   *   The id of the entity.
++   * @param array $value
++   *   The entity values.
++   *
++   * @return int|string
++   *   The entity id of the generated entity.
++   */
++  protected function updateEntity($target_id, $value) {
++    $entity = $this->entityTypeManager
++      ->getStorage($this->lookupEntityType)
++      ->load($target_id);
++
++    $enity_values = $this->entity($value);
++    foreach ($enity_values as $key => $value) {
++      $entity->set($key, $value);
++    }
++    $entity->save();
++    return $entity->id();
++  }
++
+   /**
+    * Fabricate an entity.
+    *
